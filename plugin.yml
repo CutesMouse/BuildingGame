@@ -1,0 +1,21 @@
+name: BuildingGame
+author: CutesMouse
+version: "1.0"
+api-version: "1.16"
+description: "Building Game"
+main: com.cutesmouse.bdgame.Main
+depend:
+  - "MGui"
+softdepend:
+  - "WorldEdit"
+commands:
+  buildinggame:
+    usage: "The main command for Building Game by Mouse"
+    aliases:
+      - "bg"
+      - "bd"
+      - "bdgame"
+  query:
+    usage: "Query Game Status"
+    aliases:
+      - q

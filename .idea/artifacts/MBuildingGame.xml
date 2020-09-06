@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MBuildingGame">
+    <output-path>$PROJECT_DIR$/out/artifacts/MBuildingGame</output-path>
+    <root id="archive" name="MBuildingGame.jar">
+      <element id="module-output" name="BuildingGame" />
+      <element id="file-copy" path="$PROJECT_DIR$/plugin.yml" />
+    </root>
+  </artifact>
+</component>
