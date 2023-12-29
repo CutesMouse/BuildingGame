@@ -4,15 +4,9 @@ import com.cutesmouse.bdgame.Main;
 import com.cutesmouse.bdgame.PlayerData;
 import com.cutesmouse.bdgame.PlayerDataManager;
 import com.cutesmouse.bdgame.Room;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.server.v1_16_R1.ChatComponentText;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 public class Debug implements CommandExecutor {
 
@@ -40,14 +34,15 @@ public class Debug implements CommandExecutor {
                 sender.sendMessage("§6isDone: §r"+data.isDone());
                 sender.sendMessage("§6GuessRoom: §r"+data.getGuessRoom());
                 sender.sendMessage("§6ID: §r"+data.getId());
-                for (int i = 1 ; i < Main.BDGAME.getMaxStage(); i++) {
+                /*for (int i = 1 ; i < Main.BDGAME.getMaxStage(); i++) {
                     Room room = data.nextRoom(i);
+                    sender.spigot().sendMessage();
                     TextComponent tex = new TextComponent("§6階段"+i+(i == 1 ? "(出題)" : (i % 2 == 0 ? "(建築)" : "(猜測)"))+"房間: §r"+ room + (i % 2 == 0 && i > 2 ?
                             "(題目: "+data.getGuessRoom(i)+")" : ""));
                     tex.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,new TextComponent[]{new TextComponent("§f顯示更多資訊")}));
                     tex.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/debug room "+room.toString()));
                     sender.spigot().sendMessage(tex);
-                }
+                }*/
                 break;
         }
         return true;

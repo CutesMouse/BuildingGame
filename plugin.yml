@@ -1,12 +1,11 @@
 name: BuildingGame
 author: CutesMouse
 version: "1.0"
-api-version: "1.16"
+api-version: "1.20"
 description: "Building Game"
 main: com.cutesmouse.bdgame.Main
 depend:
   - "MGui"
-softdepend:
   - "WorldEdit"
 commands:
   buildinggame:
