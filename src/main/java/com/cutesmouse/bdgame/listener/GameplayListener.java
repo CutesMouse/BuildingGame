@@ -14,6 +14,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -399,6 +400,7 @@ public class GameplayListener implements Listener {
 
     @EventHandler
     public void onClickEntity(PlayerInteractEntityEvent e) {
+        if (e.getRightClicked() instanceof Player) return;
         if (Main.BDGAME.getStage() == 0) return;
         e.setCancelled(true);
         if (Main.BDGAME.getStage() % 2 != 0) return;
