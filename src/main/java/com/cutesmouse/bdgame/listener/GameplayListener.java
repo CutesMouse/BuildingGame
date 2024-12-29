@@ -3,6 +3,7 @@ package com.cutesmouse.bdgame.listener;
 import com.cutesmouse.bdgame.*;
 import com.cutesmouse.bdgame.buildKit.BlockStatus;
 import com.cutesmouse.bdgame.buildKit.ClipBoardData;
+import com.cutesmouse.bdgame.buildKit.EntityEditting;
 import com.cutesmouse.bdgame.buildKit.SelectedArea;
 import com.cutesmouse.bdgame.tools.ItemBank;
 import org.bukkit.Location;
@@ -10,22 +11,21 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Creature;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
-import org.bukkit.event.entity.ItemDespawnEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
-import org.spigotmc.event.entity.EntityMountEvent;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,24 +33,27 @@ import java.util.Queue;
 
 public class GameplayListener implements Listener {
     private static Main plugin;
+
     public GameplayListener(Main plugin) {
         GameplayListener.plugin = plugin;
     }
+
     @EventHandler
     public void onPlayerMovedInventory(InventoryClickEvent e) {
-        if (Main.BDGAME.getStage() == 0) return;
         ItemStack item = ItemBank.MENU;
         if (Main.BDGAME.getStage() == Main.BDGAME.getMaxStage()) {
             if (!e.getWhoClicked().isOp()) return;
             item = ItemBank.NEXT_ITEM;
         }
-        if (!e.getWhoClicked().getInventory().containsAtLeast(item,1)) {
-            e.getWhoClicked().getInventory().setItem(8,item);
+        if (!e.getWhoClicked().getInventory().containsAtLeast(item, 1)) {
+            e.getWhoClicked().getInventory().setItem(8, item);
         }
     }
+
     private static Queue<Runnable> TASKS;
     private long last;
     private static final ArrayList<Material> BANNED_ITEM;
+
     static {
         BANNED_ITEM = new ArrayList<>();
         BANNED_ITEM.add(Material.EGG);
@@ -62,17 +65,21 @@ public class GameplayListener implements Listener {
         BANNED_ITEM.add(Material.ENDER_EYE);
         BANNED_ITEM.add(Material.CHORUS_FRUIT);
     }
+
     @EventHandler
     public void onPlayerRiding(EntityMountEvent e) {
         e.setCancelled(true);
     }
-    private static HashMap<String,Long> COOLDOWN = new HashMap<>();
-    private static HashMap<String,UndoQueue> UNDO = new HashMap<>();
+
+    private static HashMap<String, Long> COOLDOWN = new HashMap<>();
+    private static HashMap<String, UndoQueue> UNDO = new HashMap<>();
+
     @EventHandler
     public void onPlayerClick(PlayerInteractEvent e) {
         if (e.getItem() == null) return;
         if (BANNED_ITEM.contains(e.getMaterial())) {
-            if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) e.setCancelled(true);
+            if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+                e.setCancelled(true);
             return;
         }
         if (Main.BDGAME.getStage() > 0 && Main.BDGAME.getStage() % 2 == 0 && Main.BDGAME.getStage() < Main.BDGAME.getMaxStage()) {
@@ -90,16 +97,16 @@ public class GameplayListener implements Listener {
                 SelectedArea area = data.getSelectedArea();
                 if (e.getAction().equals(Action.LEFT_CLICK_BLOCK)) area.firstPoint = target;
                 else area.secondPoint = target;
-                e.getPlayer().sendMessage("§d已設定第"+(e.getAction().equals(Action.LEFT_CLICK_BLOCK) ? "一" : "二")+"個選擇點"+
-                        (area.ready() ? " ("+area.size()+")" : ""));
+                e.getPlayer().sendMessage("§d已設定第" + (e.getAction().equals(Action.LEFT_CLICK_BLOCK) ? "一" : "二") + "個選擇點" +
+                        (area.ready() ? " (" + area.size() + ")" : ""));
                 return;
             }
             // 填滿工具
             if (e.getItem().isSimilar(ItemBank.SET)) {
                 if (COOLDOWN.containsKey(e.getPlayer().getName())) {
                     long time = System.currentTimeMillis() - COOLDOWN.get(e.getPlayer().getName());
-                    if (time < 10000) {
-                        e.getPlayer().sendMessage("§c此物品冷卻中! 請等待 §e" + (10 - (time / 1000)) + " §c秒!");
+                    if (time < 1000) {
+                        e.getPlayer().sendMessage("§c請間隔一秒後再進行操作!");
                         return;
                     }
                 }
@@ -133,7 +140,7 @@ public class GameplayListener implements Listener {
                     e.getPlayer().sendMessage("§c未做任何變更!");
                     return;
                 }
-                e.getPlayer().sendMessage("§a已完成設定! 共更新 "+times+" 個方塊");
+                e.getPlayer().sendMessage("§a已完成設定! 共更新 " + times + " 個方塊");
                 COOLDOWN.put(e.getPlayer().getName(), System.currentTimeMillis());
                 UNDO.put(e.getPlayer().getName(), new UndoQueue(undo));
                 return;
@@ -161,19 +168,19 @@ public class GameplayListener implements Listener {
                 }
                 ClipBoardData clip = new ClipBoardData();
                 int copied = area.forEach(loc -> {
-                    clip.add(new BlockStatus(ori,loc.getBlock()));
+                    clip.add(new BlockStatus(ori, loc.getBlock()));
                     return true;
                 });
                 data.getSelectedArea().Clipboard = clip;
-                e.getPlayer().sendMessage("§a已複製 "+copied+" 個方塊!");
-                COOLDOWN.put(e.getPlayer().getName(),System.currentTimeMillis());
+                e.getPlayer().sendMessage("§a已複製 " + copied + " 個方塊!");
+                COOLDOWN.put(e.getPlayer().getName(), System.currentTimeMillis());
                 return;
             }
             if (e.getItem().isSimilar(ItemBank.PASTE)) {
                 if (COOLDOWN.containsKey(e.getPlayer().getName())) {
                     long time = System.currentTimeMillis() - COOLDOWN.get(e.getPlayer().getName());
-                    if (time < 3000) {
-                        e.getPlayer().sendMessage("§c此物品冷卻中! 請等待 §e" + (3 - (time / 1000)) + " §c秒!");
+                    if (time < 1000) {
+                        e.getPlayer().sendMessage("§c請間隔一秒後再進行操作!");
                         return;
                     }
                 }
@@ -205,18 +212,18 @@ public class GameplayListener implements Listener {
                         ignore++;
                     }
                 }
-                e.getPlayer().sendMessage("§a已貼上 "+success+" 個方塊!");
-                if (ignore > 0) e.getPlayer().sendMessage("§c因為牴觸邊界 有 "+ignore+" 個方塊被自動忽略!");
-                UNDO.put(e.getPlayer().getName(),new UndoQueue(undo));
-                COOLDOWN.put(e.getPlayer().getName(),System.currentTimeMillis());
+                e.getPlayer().sendMessage("§a已貼上 " + success + " 個方塊!");
+                if (ignore > 0) e.getPlayer().sendMessage("§c因為牴觸邊界 有 " + ignore + " 個方塊被自動忽略!");
+                UNDO.put(e.getPlayer().getName(), new UndoQueue(undo));
+                COOLDOWN.put(e.getPlayer().getName(), System.currentTimeMillis());
                 return;
             }
             if (e.getItem().isSimilar(ItemBank.SETPLOT)) {
                 if (e.getClickedBlock() == null) return;
                 if (COOLDOWN.containsKey(e.getPlayer().getName())) {
                     long time = System.currentTimeMillis() - COOLDOWN.get(e.getPlayer().getName());
-                    if (time < 10000) {
-                        e.getPlayer().sendMessage("§c此物品冷卻中! 請等待 §e" + (10 - (time / 1000)) + " §c秒!");
+                    if (time < 1000) {
+                        e.getPlayer().sendMessage("§c請間隔一秒後再進行操作!");
                         return;
                     }
                 }
@@ -245,7 +252,7 @@ public class GameplayListener implements Listener {
                 if (COOLDOWN.containsKey(e.getPlayer().getName())) {
                     long time = System.currentTimeMillis() - COOLDOWN.get(e.getPlayer().getName());
                     if (time < 10000) {
-                        e.getPlayer().sendMessage("§c此物品冷卻中! 請等待 §e" + (10 - (time / 1000)) + " §c秒!");
+                        e.getPlayer().sendMessage("§c請間隔十秒後再進行操作!");
                         return;
                     }
                 }
@@ -292,7 +299,6 @@ public class GameplayListener implements Listener {
             e.setCancelled(false);
         }
         if (e.getItem().isSimilar(ItemBank.MENU)) {
-            if (e.getClickedBlock() == null) return;
             GameMenuHandler.open(e.getPlayer());
             e.setCancelled(true);
             return;
@@ -313,10 +319,12 @@ public class GameplayListener implements Listener {
             }
         }
     }
+
     @EventHandler
     public void onPistonExtend(BlockPistonExtendEvent e) {
         e.setCancelled(true);
     }
+
     @EventHandler
     public void onEntityDamaged(EntityDamageEvent e) {
         if (e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_ATTACK)) {
@@ -327,6 +335,7 @@ public class GameplayListener implements Listener {
         }
         e.setCancelled(true);
     }
+
     @EventHandler
     public void onPlaceMob(CreatureSpawnEvent e) {
         if (e.getSpawnReason().equals(CreatureSpawnEvent.SpawnReason.SPAWNER_EGG)) {
@@ -335,10 +344,12 @@ public class GameplayListener implements Listener {
             e.getEntity().setSilent(true);
         }
     }
+
     @EventHandler
     public void onItemDespawn(ItemDespawnEvent e) {
         e.setCancelled(true);
     }
+
     @EventHandler
     public void onBreakBlock(BlockBreakEvent e) {
         if (Main.BDGAME.getStage() == 0) return;
@@ -346,9 +357,10 @@ public class GameplayListener implements Listener {
         if (e.getPlayer().isOp()) return;
         PlayerData data = PlayerDataManager.getPlayerData(e.getPlayer());
         if (!data.isPlaying()) return;
-        if (Main.BDGAME.getMapManager().canBuild(data.currentRoom().loc,e.getBlock().getLocation())) return;
+        if (Main.BDGAME.getMapManager().canBuild(data.currentRoom().loc, e.getBlock().getLocation())) return;
         e.setCancelled(true);
     }
+
     @EventHandler
     public void onBreakPlace(BlockPlaceEvent e) {
         if (Main.BDGAME.getStage() == 0) return;
@@ -356,9 +368,10 @@ public class GameplayListener implements Listener {
         if (e.getPlayer().isOp()) return;
         PlayerData data = PlayerDataManager.getPlayerData(e.getPlayer());
         if (!data.isPlaying()) return;
-        if (Main.BDGAME.getMapManager().canBuild(data.currentRoom().loc,e.getBlock().getLocation())) return;
+        if (Main.BDGAME.getMapManager().canBuild(data.currentRoom().loc, e.getBlock().getLocation())) return;
         e.setCancelled(true);
     }
+
     @EventHandler
     public void onMove(PlayerMoveEvent e) {
         if (Main.BDGAME.getStage() == 0) return;
@@ -370,15 +383,63 @@ public class GameplayListener implements Listener {
             e.setTo(data.currentRoom().loc);
         }
     }
+
     @EventHandler
     public void onExp(EntityExplodeEvent e) {
         e.blockList().clear();
     }
+
     @EventHandler
     public void onTel(PlayerTeleportEvent e) {
         if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.COMMAND)) {
             if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN))
-            e.setCancelled(true);
+                e.setCancelled(true);
         }
+    }
+
+    @EventHandler
+    public void onClickEntity(PlayerInteractEntityEvent e) {
+        if (Main.BDGAME.getStage() == 0) return;
+        e.setCancelled(true);
+        if (Main.BDGAME.getStage() % 2 != 0) return;
+        if (e.getRightClicked() instanceof ItemFrame) {
+            if (e.getPlayer().isSneaking())
+                EntityEditting.openItemFrame(e.getPlayer(), ((ItemFrame) e.getRightClicked()));
+            else e.setCancelled(false);
+            return;
+        }
+        if (!(e.getRightClicked() instanceof LivingEntity)) return;
+
+        EntityEditting.open(e.getPlayer(), ((LivingEntity) e.getRightClicked()));
+    }
+
+    @EventHandler
+    public void onCloseInventory(InventoryCloseEvent e) {
+        EntityEditting.reset(e.getPlayer());
+    }
+
+    // prevent zombies, skeletons, etc.. from burning
+    @EventHandler
+    public void onCombust(EntityCombustEvent e) {
+        if (e.getEntity().getFireTicks() > (Integer.MAX_VALUE >> 1)) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onItemDrop(PlayerDropItemEvent e) {
+        if (Main.BDGAME.getStage() == 0) return;
+        if (Main.BDGAME.getStage() % 2 != 0) return;
+        PlayerData data = PlayerDataManager.getPlayerData(e.getPlayer());
+        Room current = data.currentRoom();
+        if (!current.isInside(e.getItemDrop().getLocation())) {
+            e.setCancelled(true);
+            return;
+        }
+        e.getItemDrop().setPickupDelay(Integer.MAX_VALUE);
+        e.getItemDrop().setGravity(false);
+        e.getItemDrop().setUnlimitedLifetime(true);
+        e.getItemDrop().setPersistent(true);
+        e.getItemDrop().setVelocity(new Vector());
+        e.getItemDrop().teleport(e.getItemDrop().getLocation().subtract(0, 1.25, 0));
     }
 }

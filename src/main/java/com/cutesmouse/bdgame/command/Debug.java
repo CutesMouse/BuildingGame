@@ -7,6 +7,7 @@ import com.cutesmouse.bdgame.Room;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class Debug implements CommandExecutor {
 
@@ -43,6 +44,9 @@ public class Debug implements CommandExecutor {
                     tex.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/debug room "+room.toString()));
                     sender.spigot().sendMessage(tex);
                 }*/
+                break;
+            case "color":
+                System.out.println(sender.getServer().getScoreboardManager().getMainScoreboard().getObjective("test").getDisplayName());
                 break;
         }
         return true;

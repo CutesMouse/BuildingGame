@@ -156,17 +156,19 @@ public class BuildingGame {
     }
     public void loadScoreboard() {
         ObjectiveData data = new ObjectiveData();
-        data.set(9,s -> "§6當前階段: §e"+getStageText());
-        data.set(8,s -> "§6進行時間: §e"+getTimeText(current_time));
-        data.set(7,s -> "§d(完成度 "+(stage == max_stage ? "100%)" : (DonePlayers()+"/"+PlayerDataManager.getPlayers().size()+")")));
-        data.set(6,s -> "§a");
-        data.set(5, s -> "§6總時間: §e"+getTimeText(total_time));
-        data.set(4,s -> "§r"+(stage < max_stage ? "§6回合: §e"+stage+"/"+(max_stage-1) : ""));
-        data.set(3, s -> "§6伺服器人數: §e"+ Bukkit.getOnlinePlayers().size());
-        data.set(2, s -> "§6"+(getTheme(s) == null || getStage() == getMaxStage() ? "" : "主題: §e§l"+getTheme(s)));
+        data.set(11,s -> "§l");
+        data.set(10,s -> String.format("§f▶ %s", getStageText()));
+        data.set(9,s -> "§a");
+        data.set(8,s -> String.format("§f▶ 階段 §b%s", getTimeText(current_time)));
+        data.set(7,s -> String.format("§f▶ 完成 §b%s", (stage == max_stage ? "100%" : (DonePlayers()+"/"+PlayerDataManager.getPlayers().size()))));
+        data.set(6,s -> "§k");
+        data.set(5, s -> String.format("§f▶ 進行 §b%s", getTimeText(total_time)));
+        data.set(4,s -> String.format("§r%s", (stage < max_stage ? "§f▶ 回合 §b"+stage+"/"+(max_stage-1) : "")));
+        data.set(3, s -> "§f"+(getStage() == getMaxStage() ? "▶ 遊戲已結束" : (getTheme(s) == null ? "▶ 使用選單設定題目/猜測" : "▶ 主題 §e"+getTheme(s))));
+        data.set(2,s -> "§9");
         data.set(1,s -> "§7"+new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         ScoreboardManager.INSTANCE.setObjective_Data(data);
-        ScoreboardManager.INSTANCE.setObjective_DisplayName("§d◤§b§l建築大賽 Building Game§d◢");
+        ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2025 跨年建築大賽");
         ScoreboardManager.INSTANCE.setObjective_Name("list");
         ScoreboardManager.INSTANCE.reloadSidebarData();
     }

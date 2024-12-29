@@ -49,6 +49,10 @@ public class PlayerData {
         Main.BDGAME.checkIfNextStage();
     }
 
+    public void undone() {
+        done = false;
+    }
+
     public boolean isDone() {
         return done;
     }

@@ -26,16 +26,17 @@ public class Main extends JavaPlugin {
     private void loadScoreboard() {
         getServer().getPluginManager().registerEvents(ScoreboardManager.INSTANCE,this);
         ObjectiveData data = new ObjectiveData();
-        data.set(10,s -> "§6歡迎 §e" + s.getName());
-        data.set(9,s -> "§6參加本屆");
-        data.set(8,s -> "§e§l「建築大賽」");
-        data.set(7, s -> "§6伺服器人數: §e"+ Bukkit.getOnlinePlayers().size());
-        data.set(6, s -> "§a");
-        data.set(5, s -> "§6階段: §e準備中...");
-        data.set(4, s -> "§c");
-        data.set(3,s -> "§7"+new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
+        data.set(9, s -> "§a");
+        data.set(8, s -> "§b");
+        data.set(7,s -> "§b▶ 2025 跨年建築大賽");
+        data.set(6,s -> "§f  ☉ Since §e2016");
+        data.set(5, s -> "§c");
+        data.set(4, s -> "§f▶ 人數 §b"+ Bukkit.getOnlinePlayers().size());
+        data.set(3, s -> "§f▶ 準備中...");
+        data.set(2, s -> "§d");
+        data.set(1,s -> "§7"+new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         ScoreboardManager.INSTANCE.setObjective_Data(data);
-        ScoreboardManager.INSTANCE.setObjective_DisplayName("§d◤§b§l建築大賽 Building Game§d◢");
+        ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2025 跨年建築大賽");
         ScoreboardManager.INSTANCE.setObjective_Name("list");
         new BukkitRunnable() {
             @Override

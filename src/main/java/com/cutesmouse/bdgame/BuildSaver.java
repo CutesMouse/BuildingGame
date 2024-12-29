@@ -16,6 +16,7 @@ import org.bukkit.Location;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -26,12 +27,12 @@ public class BuildSaver {
     }
     public static void save(Room r) {
         if (!isAvaliable()) return;
-        CuboidRegion region = new CuboidRegion(new BukkitWorld(r.loc.getWorld()), BlockVector3.at(r.getMinBuildX(),r.getMinBuildY(),
-                r.getMinBuildZ()), BlockVector3.at(r.getMaxBuildX(),r.getMaxBuildY(),
+        CuboidRegion region = new CuboidRegion(new BukkitWorld(r.loc.getWorld()), new BlockVector3(r.getMinBuildX(),r.getMinBuildY(),
+                r.getMinBuildZ()), new BlockVector3(r.getMaxBuildX(),r.getMaxBuildY(),
                 r.getMaxBuildZ()));
         BlockArrayClipboard clipboard = new BlockArrayClipboard(region);
 
-        EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(region.getWorld(), -1);
+        EditSession editSession = WorldEdit.getInstance().newEditSession(region.getWorld());
 
         ForwardExtentCopy forwardExtentCopy = new ForwardExtentCopy(editSession, region, clipboard, region.getMinimumPoint());
         forwardExtentCopy.setCopyingEntities(true);
@@ -41,7 +42,7 @@ public class BuildSaver {
             e.printStackTrace();
             return;
         }
-        try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getWriter(new FileOutputStream(getFile(r)))) {
+        try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_V2_SCHEMATIC.getWriter(Files.newOutputStream(getFile(r).toPath()))) {
             writer.write(clipboard);
         } catch (IOException e) {
             e.printStackTrace();
