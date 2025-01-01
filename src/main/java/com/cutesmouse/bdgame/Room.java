@@ -40,16 +40,16 @@ public class Room {
                 (loc.getBlockZ() >= getMinBuildZ() && loc.getBlockZ() <= getMaxBuildZ());
     }
     public int getMinBuildX() {
-        return loc.getBlockX() - 9;
+        return loc.getBlockX() - 15;
     }
     public int getMaxBuildX() {
-        return loc.getBlockX() + 9;
+        return loc.getBlockX() + 15;
     }
     public int getMinBuildZ() {
         return loc.getBlockZ() + 4;
     }
     public int getMaxBuildZ() {
-        return loc.getBlockZ() + 29;
+        return loc.getBlockZ() + 33;
     }
     public int getMinBuildY() {
         return 100;

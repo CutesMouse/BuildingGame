@@ -1,5 +1,6 @@
 package com.cutesmouse.bdgame;
 
+import com.cutesmouse.bdgame.buildKit.EntityEditting;
 import com.cutesmouse.bdgame.scoreboard.ObjectiveData;
 import com.cutesmouse.bdgame.scoreboard.ScoreboardManager;
 import com.cutesmouse.bdgame.tools.ItemBank;
@@ -21,6 +22,7 @@ public class BuildingGame {
     private long total_time;
     private long current_time;
     private int players;
+
     /*
     @stage
         1 -> 出題
@@ -57,29 +59,32 @@ public class BuildingGame {
     public void nextStage() {
         current_time = System.currentTimeMillis();
         PlayerDataManager.getPlayers().forEach(p -> p.getSelectedArea().clear());
+        for (Player p : Bukkit.getOnlinePlayers()) { // 防止切換Stage時有人正在編輯實體
+            EntityEditting.resetMovingTask(p);
+        }
         stage++;
         if (stage == getMaxStage()) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.sendMessage("§a所有回合已經輪番結束! 現在開始欣賞結果!");
-                if (p.isOp()) p.getInventory().setItem(8,ItemBank.NEXT_ITEM);
+                if (p.isOp()) p.getInventory().setItem(8, ItemBank.NEXT_ITEM);
             }
             return;
         }
         if (stage == 1) {
             for (PlayerData p : PlayerDataManager.getPlayers()) {
                 Room room = p.nextRoom(stage);
-                p.getPlayer().teleport(room.loc);
+                p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
                 p.getPlayer().sendMessage("§6現在是出題時間! 請開啟選單來命題!");
-                p.getPlayer().sendTitle("§a出題時間","§e第1階段",20,60,20);
+                p.getPlayer().sendTitle("§f出題時間", "§b第1階段", 20, 60, 20);
             }
             return;
         }
         if (stage == 2) {
             for (PlayerData p : PlayerDataManager.getPlayers()) {
                 Room room = p.nextRoom(stage);
-                p.getPlayer().teleport(room.loc);
-                p.getPlayer().sendMessage("§6您分配到的題目是 §e"+ room.data.origin);
-                p.getPlayer().sendTitle("§a建築時間","§e第2階段",20,60,20);
+                p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
+                p.getPlayer().sendMessage("§6您分配到的題目是 §e" + room.data.origin);
+                p.getPlayer().sendTitle("§f建築時間", "§b第2階段", 20, 60, 20);
                 room.data.builder = p.getPlayer().getName();
             }
             return;
@@ -87,9 +92,9 @@ public class BuildingGame {
         if (stage % 2 == 1) {
             for (PlayerData p : PlayerDataManager.getPlayers()) {
                 Room room = p.nextRoom(stage);
-                p.getPlayer().teleport(room.loc);
+                p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
                 p.getPlayer().sendMessage("§6請依照建築內容進行猜測");
-                p.getPlayer().sendTitle("§a猜測時間","§e第"+stage+"階段",20,60,20);
+                p.getPlayer().sendTitle("§f猜測時間", "§b第" + stage + "階段", 20, 60, 20);
             }
             return;
         }
@@ -98,9 +103,9 @@ public class BuildingGame {
             Room guess = p.getGuessRoom();
             room.data.origin = guess.data.guess;
             room.data.originProvider = guess.data.guessProvider;
-            p.getPlayer().teleport(room.loc);
-            p.getPlayer().sendMessage("§6您分配到的題目是 §e"+room.data.origin);
-            p.getPlayer().sendTitle("§a建築時間","§e第"+stage+"階段",20,60,20);
+            p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
+            p.getPlayer().sendMessage("§6您分配到的題目是 §e" + room.data.origin);
+            p.getPlayer().sendTitle("§f建築時間", "§b第" + stage + "階段", 20, 60, 20);
             room.data.builder = p.getPlayer().getName();
         }
     }
@@ -133,45 +138,52 @@ public class BuildingGame {
         if (stage % 2 == 0) return "建築中";
         return "猜測中";
     }
+
     public int DonePlayers() {
         return (int) PlayerDataManager.getPlayers().stream().filter(p -> p.isPlaying() && p.isDone()).count();
     }
+
     public int ActivePlayers() {
         return (int) PlayerDataManager.getPlayers().stream().filter(PlayerData::isPlaying).count();
     }
+
     public void checkIfNextStage() {
         if (ActivePlayers() > DonePlayers()) return;
         PlayerDataManager.getPlayers().forEach(p -> p.setDone(false));
         nextStage();
     }
+
     private String getTimeText(long t) {
         t = System.currentTimeMillis() - t;
-        int hour = (int) (t /1000 / 60 /60);
+        int hour = (int) (t / 1000 / 60 / 60);
         int mins = (int) ((t - hour * 1000 * 60 * 60) / 1000 / 60);
         int sec = (int) ((t - (mins * 1000 * 60) - (hour * 1000 * 60 * 60)) / 1000);
-        return (hour == 0 ? String.format("%02d:%02d",mins,sec) : String.format("%02d:%02d:%02d",hour,mins,sec));
+        return (hour == 0 ? String.format("%02d:%02d", mins, sec) : String.format("%02d:%02d:%02d", hour, mins, sec));
     }
+
     public String getTheme(Player p) {
         return stage % 2 == 0 ? (PlayerDataManager.getPlayerData(p).currentRoom().data.origin) : null;
     }
+
     public void loadScoreboard() {
         ObjectiveData data = new ObjectiveData();
-        data.set(11,s -> "§l");
-        data.set(10,s -> String.format("§f▶ %s", getStageText()));
-        data.set(9,s -> "§a");
-        data.set(8,s -> String.format("§f▶ 階段 §b%s", getTimeText(current_time)));
-        data.set(7,s -> String.format("§f▶ 完成 §b%s", (stage == max_stage ? "100%" : (DonePlayers()+"/"+PlayerDataManager.getPlayers().size()))));
-        data.set(6,s -> "§k");
+        data.set(11, s -> "§l");
+        data.set(10, s -> String.format("§f▶ %s", getStageText()));
+        data.set(9, s -> "§a");
+        data.set(8, s -> String.format("§f▶ 階段 §b%s", getTimeText(current_time)));
+        data.set(7, s -> String.format("§f▶ 完成 §b%s", (stage == max_stage ? "100%" : (DonePlayers() + "/" + PlayerDataManager.getPlayers().size()))));
+        data.set(6, s -> "§k");
         data.set(5, s -> String.format("§f▶ 進行 §b%s", getTimeText(total_time)));
-        data.set(4,s -> String.format("§r%s", (stage < max_stage ? "§f▶ 回合 §b"+stage+"/"+(max_stage-1) : "")));
-        data.set(3, s -> "§f"+(getStage() == getMaxStage() ? "▶ 遊戲已結束" : (getTheme(s) == null ? "▶ 使用選單設定題目/猜測" : "▶ 主題 §e"+getTheme(s))));
-        data.set(2,s -> "§9");
-        data.set(1,s -> "§7"+new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
+        data.set(4, s -> String.format("§r%s", (stage < max_stage ? "§f▶ 回合 §b" + stage + "/" + (max_stage - 1) : "")));
+        data.set(3, s -> "§f" + (getStage() == getMaxStage() ? "▶ 遊戲已結束" : (getTheme(s) == null ? "▶ 使用選單設定題目/猜測" : "▶ 主題 §e" + getTheme(s))));
+        data.set(2, s -> "§9");
+        data.set(1, s -> "§7" + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         ScoreboardManager.INSTANCE.setObjective_Data(data);
         ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2025 跨年建築大賽");
         ScoreboardManager.INSTANCE.setObjective_Name("list");
         ScoreboardManager.INSTANCE.reloadSidebarData();
     }
+
     public World getWorld() {
         return world;
     }

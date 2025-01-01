@@ -2,6 +2,7 @@ package com.cutesmouse.bdgame;
 
 import com.cutesmouse.bdgame.command.Debug;
 import com.cutesmouse.bdgame.command.BDGameCMD;
+import com.cutesmouse.bdgame.listener.BlockRulesListener;
 import com.cutesmouse.bdgame.listener.GameplayListener;
 import com.cutesmouse.bdgame.scoreboard.ObjectiveData;
 import com.cutesmouse.bdgame.scoreboard.ScoreboardManager;
@@ -21,6 +22,7 @@ public class Main extends JavaPlugin {
         getCommand("buildinggame").setExecutor(new BDGameCMD());
         getCommand("query").setExecutor(new Debug());
         getServer().getPluginManager().registerEvents(new GameplayListener(this),this);
+        getServer().getPluginManager().registerEvents(new BlockRulesListener(),this);
         loadScoreboard();
     }
     private void loadScoreboard() {
@@ -29,7 +31,7 @@ public class Main extends JavaPlugin {
         data.set(9, s -> "§a");
         data.set(8, s -> "§b");
         data.set(7,s -> "§b▶ 2025 跨年建築大賽");
-        data.set(6,s -> "§f  ☉ Since §e2016");
+        data.set(6,s -> "§f  ☉ Since §e2017");
         data.set(5, s -> "§c");
         data.set(4, s -> "§f▶ 人數 §b"+ Bukkit.getOnlinePlayers().size());
         data.set(3, s -> "§f▶ 準備中...");

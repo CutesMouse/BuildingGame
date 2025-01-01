@@ -68,8 +68,7 @@ public class ItemBank {
         COPY = new ItemStack(Material.BUCKET);
         ItemMeta meta = COPY.getItemMeta();
         meta.setDisplayName("§f複製工具");
-        meta.setLore(new ArrayList<>(Arrays.asList("§b▶ 站在某個位置來複製選取區內的方塊","§b▶ 左鍵點選將會以玩家位置為複製參考點",
-                "§b▶ 右鍵方塊將以該方塊位置為參考點","§c☉ 須配合 §f選取工具")));
+        meta.setLore(new ArrayList<>(Arrays.asList("§b▶ 站在某個位置來複製選取區內的方塊","§b▶ 以玩家位置為複製參考點", "§c☉ 須配合 §f選取工具")));
         COPY.setItemMeta(meta);
     }
     public static final ItemStack PASTE;
@@ -77,8 +76,7 @@ public class ItemBank {
         PASTE = new ItemStack(Material.WATER_BUCKET);
         ItemMeta meta = PASTE.getItemMeta();
         meta.setDisplayName("§f黏貼工具");
-        meta.setLore(new ArrayList<>(Arrays.asList("§b▶ 複製黏貼版的內容","§b▶ 左鍵點選將會以玩家位置為黏貼參考點",
-                "§b▶ 右鍵方塊將以該方塊位置為參考點","§c☉ 須配合 §f複製工具")));
+        meta.setLore(new ArrayList<>(Arrays.asList("§b▶ 複製黏貼版的內容","§b▶ 以玩家位置為黏貼參考點", "§c☉ 須配合 §f複製工具")));
         PASTE.setItemMeta(meta);
     }
 }

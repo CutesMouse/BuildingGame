@@ -1,6 +1,7 @@
 package com.cutesmouse.bdgame.buildKit;
 
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 import java.util.function.Function;
 
@@ -41,6 +42,18 @@ public class SelectedArea {
     }
     public int getMinZ() {
         return Math.min(firstPoint.getBlockZ(),secondPoint.getBlockZ());
+    }
+    public Vector getSizeVector() {
+        return new Vector(getMaxX() - getMinX(), getMaxY() - getMinY(), getMaxZ() - getMinZ());
+    }
+    public Vector getMinVector() {
+        return new Vector(getMinX(), getMinY(), getMinZ());
+    }
+    public Location getMinLocation() {
+        return new Location(firstPoint.getWorld(), getMinX(), getMinY(), getMinZ());
+    }
+    public Location getMaxLocation() {
+        return new Location(secondPoint.getWorld(), getMaxX(), getMaxY(), getMaxZ());
     }
     public int forEach(Function<Location,Boolean> function) {
         int times = 0;
