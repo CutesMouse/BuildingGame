@@ -1,18 +1,15 @@
 package com.cutesmouse.bdgame;
 
-import com.cutesmouse.bdgame.buildKit.EntityEditting;
-import com.cutesmouse.bdgame.scoreboard.ObjectiveData;
-import com.cutesmouse.bdgame.scoreboard.ScoreboardManager;
-import com.cutesmouse.bdgame.tools.ItemBank;
+import com.cutesmouse.bdgame.tools.EntityEditting;
+import com.cutesmouse.bdgame.scoreboards.ObjectiveData;
+import com.cutesmouse.bdgame.scoreboards.ScoreboardManager;
+import com.cutesmouse.bdgame.utils.ItemBank;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
+import java.util.*;
 
 public class BuildingGame {
     private World world;
@@ -22,6 +19,9 @@ public class BuildingGame {
     private long total_time;
     private long current_time;
     private int players;
+    private HashMap<String, Integer> votes;
+    private double vote_result;
+    private String vote_target;
 
     /*
     @stage
@@ -42,6 +42,34 @@ public class BuildingGame {
 
     public int getMaxStage() {
         return max_stage;
+    }
+
+    public void startRanking(String target) {
+        votes = new HashMap<>();
+        vote_result = 0;
+        vote_target = target;
+    }
+
+    public void endRanking() {
+        votes = null;
+    }
+
+    public void vote(String player_name, int grade) {
+        if (!isRanking()) return;
+        votes.put(player_name, grade);
+        vote_result = votes.values().stream().reduce(0, Integer::sum) / (double) votes.values().size();
+    }
+
+    public boolean isRanking() {
+        return votes != null;
+    }
+
+    public String getVoteTarget() {
+        return vote_target;
+    }
+
+    public double getVoteResult() {
+        return vote_result;
     }
 
     public void setMapManager(MapManager manager) {
@@ -67,6 +95,11 @@ public class BuildingGame {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.sendMessage("§a所有回合已經輪番結束! 現在開始欣賞結果!");
                 if (p.isOp()) p.getInventory().setItem(8, ItemBank.NEXT_ITEM);
+                p.getInventory().setItem(0, ItemBank.RANK_LEVEL_0);
+                p.getInventory().setItem(1, ItemBank.RANK_LEVEL_1);
+                p.getInventory().setItem(2, ItemBank.RANK_LEVEL_2);
+                p.getInventory().setItem(3, ItemBank.RANK_LEVEL_3);
+                p.getInventory().setItem(4, ItemBank.RANK_LEVEL_4);
             }
             return;
         }
@@ -175,11 +208,11 @@ public class BuildingGame {
         data.set(6, s -> "§k");
         data.set(5, s -> String.format("§f▶ 進行 §b%s", getTimeText(total_time)));
         data.set(4, s -> String.format("§r%s", (stage < max_stage ? "§f▶ 回合 §b" + stage + "/" + (max_stage - 1) : "")));
-        data.set(3, s -> "§f" + (getStage() == getMaxStage() ? "▶ 遊戲已結束" : (getTheme(s) == null ? "▶ 使用選單設定題目/猜測" : "▶ 主題 §e" + getTheme(s))));
+        data.set(3, s -> "§f" + (getStage() == getMaxStage() ? (isRanking() ? "▶ 銳評 " + getVoteTarget() : "▶ 銳評系統關閉中") : (getTheme(s) == null ? "▶ 使用選單設定題目/猜測" : "▶ 主題 §e" + getTheme(s))));
         data.set(2, s -> "§9");
         data.set(1, s -> "§7" + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         ScoreboardManager.INSTANCE.setObjective_Data(data);
-        ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2025 跨年建築大賽");
+        ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2026 跨年建築大賽");
         ScoreboardManager.INSTANCE.setObjective_Name("list");
         ScoreboardManager.INSTANCE.reloadSidebarData();
     }

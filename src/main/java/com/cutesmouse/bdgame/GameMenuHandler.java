@@ -1,10 +1,8 @@
 package com.cutesmouse.bdgame;
 
-import com.cutesmouse.bdgame.tools.ItemBank;
-import com.cutesmouse.mgui.ChatQueueData;
+import com.cutesmouse.bdgame.utils.ItemBank;
 import com.cutesmouse.mgui.GUI;
 import com.cutesmouse.mgui.GUIItem;
-import com.cutesmouse.mgui.ListenerHandler;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -18,7 +16,7 @@ import java.util.Collections;
 public class GameMenuHandler {
     public static void open(Player p) {
         PlayerData data = PlayerDataManager.getPlayerData(p);
-        GUI gui = new GUI("§e● 2025 跨年建築大賽", 5, p);
+        GUI gui = new GUI("§e● 2026 跨年建築大賽", 5, p);
         for (int i = 0; i < 45; i++)
             gui.addItem(i, new GUIItem(Material.GRAY_STAINED_GLASS_PANE, null, "§r", GUI.blank()));
         int stage = Main.BDGAME.getStage();
@@ -82,7 +80,7 @@ public class GameMenuHandler {
 
     //確認出題
     private static void checkInsert(Player p, String output, PlayerData data) {
-        GUI gui = new GUI("§e● 2025 跨年建築大賽", 5, p);
+        GUI gui = new GUI("§e● 2026 跨年建築大賽", 5, p);
         for (int i = 0; i < 45; i++)
             gui.addItem(i, new GUIItem(Material.GRAY_STAINED_GLASS_PANE, null, "§r", GUI.blank()));
         gui.addItem(13, new GUIItem(Material.OAK_SIGN, new ArrayList<>(Arrays.asList("§b▶ " + output, "§c☉ 確認後無法進行更改")),
@@ -106,7 +104,7 @@ public class GameMenuHandler {
     }
 
     private static void checkGuess(Player p, String output, PlayerData data) {
-        GUI gui = new GUI("§e● 2025 跨年建築大賽", 5, p);
+        GUI gui = new GUI("§e● 2026 跨年建築大賽", 5, p);
         for (int i = 0; i < 45; i++)
             gui.addItem(i, new GUIItem(Material.GRAY_STAINED_GLASS_PANE, null, "§r", GUI.blank()));
         gui.addItem(13, new GUIItem(Material.OAK_SIGN, new ArrayList<>(Arrays.asList("§b▶ " + output, "§c☉ 確認後無法進行更改!")),

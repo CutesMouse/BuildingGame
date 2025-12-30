@@ -1,11 +1,12 @@
 package com.cutesmouse.bdgame;
 
-import com.cutesmouse.bdgame.command.Debug;
-import com.cutesmouse.bdgame.command.BDGameCMD;
-import com.cutesmouse.bdgame.listener.BlockRulesListener;
-import com.cutesmouse.bdgame.listener.GameplayListener;
-import com.cutesmouse.bdgame.scoreboard.ObjectiveData;
-import com.cutesmouse.bdgame.scoreboard.ScoreboardManager;
+import com.cutesmouse.bdgame.commands.Debug;
+import com.cutesmouse.bdgame.commands.BuildingGameCommand;
+import com.cutesmouse.bdgame.commands.RecoverBuildingsCommand;
+import com.cutesmouse.bdgame.listeners.BlockRulesListener;
+import com.cutesmouse.bdgame.listeners.GameplayListener;
+import com.cutesmouse.bdgame.scoreboards.ObjectiveData;
+import com.cutesmouse.bdgame.scoreboards.ScoreboardManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -19,7 +20,9 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         BDGAME = new BuildingGame();
         BDGAME.setMapManager(MapManager.getInstance());
-        getCommand("buildinggame").setExecutor(new BDGameCMD());
+        getCommand("buildinggame").setExecutor(new BuildingGameCommand());
+        getCommand("pastebuilding").setExecutor(new RecoverBuildingsCommand());
+        getCommand("pastebuilding").setTabCompleter(new RecoverBuildingsCommand());
         getCommand("query").setExecutor(new Debug());
         getServer().getPluginManager().registerEvents(new GameplayListener(this),this);
         getServer().getPluginManager().registerEvents(new BlockRulesListener(),this);
@@ -30,7 +33,7 @@ public class Main extends JavaPlugin {
         ObjectiveData data = new ObjectiveData();
         data.set(9, s -> "§a");
         data.set(8, s -> "§b");
-        data.set(7,s -> "§b▶ 2025 跨年建築大賽");
+        data.set(7,s -> "§b▶ 2026 跨年建築大賽");
         data.set(6,s -> "§f  ☉ Since §e2017");
         data.set(5, s -> "§c");
         data.set(4, s -> "§f▶ 人數 §b"+ Bukkit.getOnlinePlayers().size());
@@ -38,7 +41,7 @@ public class Main extends JavaPlugin {
         data.set(2, s -> "§d");
         data.set(1,s -> "§7"+new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         ScoreboardManager.INSTANCE.setObjective_Data(data);
-        ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2025 跨年建築大賽");
+        ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2026 跨年建築大賽");
         ScoreboardManager.INSTANCE.setObjective_Name("list");
         new BukkitRunnable() {
             @Override
