@@ -1,6 +1,6 @@
 name: BuildingGame
 author: CutesMouse
-version: "1.3"
+version: "1.3.2"
 api-version: "1.21.11"
 description: "Building Game"
 main: com.cutesmouse.bdgame.Main
@@ -23,3 +23,5 @@ commands:
     aliases:
       - pb
       - lookup
+  request:
+    usage: "Chat message trigger"

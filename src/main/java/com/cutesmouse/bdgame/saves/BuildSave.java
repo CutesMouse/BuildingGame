@@ -1,7 +1,7 @@
 package com.cutesmouse.bdgame.saves;
 
-import com.cutesmouse.bdgame.Room;
-import com.saicone.rtag.RtagEntity;
+import com.cutesmouse.bdgame.game.Room;
+import com.cutesmouse.bdgame.game.RoomData;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
@@ -14,11 +14,11 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
-import java.util.List;
 
 
 public class BuildSave {
@@ -27,6 +27,8 @@ public class BuildSave {
         if (!BuildFileSystem.isAvaliable()) return;
         // block information
         saveRoomBlocks(r);
+        // guess information
+        saveRoomInfo(r);
     }
 
     private static void saveRoomBlocks(Room r) {
@@ -48,6 +50,37 @@ public class BuildSave {
         try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_V2_SCHEMATIC
                 .getWriter(Files.newOutputStream(BuildFileSystem.getFile(r, BuildFileSystem.FileType.SCHEMATIC).toPath()))) {
             writer.write(clipboard);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void saveRoomInfo(Room r) {
+        File file = BuildFileSystem.getFile(r, BuildFileSystem.FileType.INFO);
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        RoomData data = r.data;
+        try {
+            for (Field field : RoomData.class.getFields()) {
+                config.set(field.getName(), field.get(data));
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveRoomRankInfo(Room r, double rank) {
+        File file = BuildFileSystem.getFile(r, BuildFileSystem.FileType.INFO);
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        config.set("rank", rank);
+
+        try {
+            config.save(file);
         } catch (IOException e) {
             e.printStackTrace();
         }

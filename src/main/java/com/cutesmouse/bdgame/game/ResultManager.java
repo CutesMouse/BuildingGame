@@ -1,5 +1,6 @@
-package com.cutesmouse.bdgame;
+package com.cutesmouse.bdgame.game;
 
+import com.cutesmouse.bdgame.Main;
 import com.cutesmouse.bdgame.saves.BuildFileSystem;
 import com.cutesmouse.bdgame.saves.BuildSave;
 import com.cutesmouse.bdgame.utils.SpecialEffects;
@@ -17,13 +18,14 @@ public class ResultManager {
             for (int stage = 1; stage <= (Main.BDGAME.getMaxStage() - 2) / 2; stage++) {
                 Room room = Main.BDGAME.getMapManager().getRoom(row, stage);
                 if (BuildFileSystem.isAvaliable()) BuildSave.save(room);
-                tasks.add(concatRunnables(() -> sendEveryone("§f這座建築的主題為 §6§l" + room.data.origin + " §f由 §6§l" + room.data.originProvider + " §f設定!", room.loc),
+                tasks.add(concatRunnables(() -> sendEveryone("§f這座建築的主題為 §6§l" + room.data.origin + " §f由 §6§l" + room.data.originProvider + " §f設定!", room.getSpawnLocation()),
                         () -> Main.BDGAME.startRanking(room.data.builder)));
                 tasks.add(() -> sendEveryone("§6§l" + room.data.builder + " §f根據主題建造了這座建築!"));
                 tasks.add(() -> sendEveryone("§6§l" + room.data.guessProvider + " §f猜測此為 §6§l" + room.data.guess));
                 tasks.add(concatRunnables(
                         () -> System.out.println(String.format("%s 建造 %s 時，在銳評中得到了 %1.1f 分", room.data.builder, room.data.origin, Main.BDGAME.getVoteResult())),
                         () -> sendEveryone(String.format("§f這棟建築在銳評中得到了 §6§l%1.1f §f分", Main.BDGAME.getVoteResult())),
+                        () -> BuildSave.saveRoomRankInfo(room, Main.BDGAME.getVoteResult()),
                         () -> SpecialEffects.rankingEffect(Main.BDGAME.getVoteResult(), Bukkit.getPlayer(room.data.builder)),
                         () -> Main.BDGAME.endRanking()));
                 if (stage == 1)

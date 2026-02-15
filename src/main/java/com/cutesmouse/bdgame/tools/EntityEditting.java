@@ -342,7 +342,6 @@ public class EntityEditting {
                     "§f更改史萊姆尺寸", (e, i) -> {
                 e.setCancelled(true);
                 if (putOnEquipment(player, 22)) return;
-                e.getWhoClicked().closeInventory();
                 openSlimeSize(player, ((Slime) entity));
             }));
         }
@@ -353,14 +352,12 @@ public class EntityEditting {
                     "§f更改界伏蚌開啟程度", (e, i) -> {
                 e.setCancelled(true);
                 if (putOnEquipment(player, 21)) return;
-                e.getWhoClicked().closeInventory();
                 openShulkerPeek(player, ((Shulker) entity));
             }));
             gui.addItem(23, new GUIItem(Material.SHULKER_SPAWN_EGG, new ArrayList<>(Arrays.asList("§b▶ 設定界伏蚌顏色")),
                     "§f更改界伏蚌顏色", (e, i) -> {
                 e.setCancelled(true);
                 if (putOnEquipment(player, 23)) return;
-                e.getWhoClicked().closeInventory();
                 openShulkerColor(player, ((Shulker) entity));
             }));
         }

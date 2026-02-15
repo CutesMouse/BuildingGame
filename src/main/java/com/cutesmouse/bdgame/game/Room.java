@@ -1,6 +1,8 @@
-package com.cutesmouse.bdgame;
+package com.cutesmouse.bdgame.game;
 
 import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
+import org.bukkit.util.BoundingBox;
 
 import java.util.HashMap;
 
@@ -47,6 +49,10 @@ public class Room {
         return new Location(loc.getWorld(), getMinBuildX(), getMinBuildY(), getMinBuildZ());
     }
 
+    public Location getSpawnLocation() {
+        return loc.clone().add(0.5, 0, 0.5);
+    }
+
     public int getMinBuildX() {
         return loc.getBlockX() - 15;
     }
@@ -69,6 +75,13 @@ public class Room {
 
     public int getMaxBuildY() {
         return 130;
+    }
+
+    public void clearEntities() {
+        loc.getWorld().getNearbyEntities(new BoundingBox(getMinBuildX(), getMinBuildY(), getMinBuildZ(),
+                getMaxBuildX(), getMaxBuildY(), getMaxBuildZ())).forEach(e -> {
+            if (!e.getType().equals(EntityType.PLAYER)) e.remove();
+        });
     }
 
     @Override

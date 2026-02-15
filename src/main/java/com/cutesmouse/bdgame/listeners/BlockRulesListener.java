@@ -1,18 +1,15 @@
 package com.cutesmouse.bdgame.listeners;
 
 import com.cutesmouse.bdgame.Main;
-import com.cutesmouse.bdgame.PlayerData;
-import com.cutesmouse.bdgame.PlayerDataManager;
-import com.cutesmouse.bdgame.Room;
+import com.cutesmouse.bdgame.game.PlayerData;
+import com.cutesmouse.bdgame.game.PlayerDataManager;
+import com.cutesmouse.bdgame.game.Room;
 import org.bukkit.Material;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Villager;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -48,6 +45,8 @@ public class BlockRulesListener implements Listener {
             e.getEntity().setSilent(true);
             e.getEntity().setPersistent(true);
             e.getEntity().setInvulnerable(true);
+            e.getEntity().setRemoveWhenFarAway(false);
+            if (e.getEntity() instanceof Breedable aged) aged.setAgeLock(true);
         }
     }
 
@@ -69,33 +68,23 @@ public class BlockRulesListener implements Listener {
 
     @EventHandler // 方塊破壞
     public void onBreakBlock(BlockBreakEvent e) {
-        if (Main.BDGAME.getStage() == 0) return;
-        if (Main.BDGAME.getStage() % 2 != 0) e.setCancelled(true);
+        if (Main.BDGAME.isPreparingStage()) return;
+        if (!Main.BDGAME.isBuildingStage()) e.setCancelled(true);
         PlayerData data = PlayerDataManager.getPlayerData(e.getPlayer());
         if (!data.isPlaying()) return;
-        if (Main.BDGAME.getMapManager().canBuild(data.currentRoom().loc, e.getBlock().getLocation())) return;
-        e.setCancelled(true);
-    }
-
-    @EventHandler // 方塊放置
-    public void onBreakPlace(BlockPlaceEvent e) {
-        if (Main.BDGAME.getStage() == 0) return;
-        if (Main.BDGAME.getStage() % 2 != 0) e.setCancelled(true);
-        PlayerData data = PlayerDataManager.getPlayerData(e.getPlayer());
-        if (!data.isPlaying()) return;
-        if (Main.BDGAME.getMapManager().canBuild(data.currentRoom().loc, e.getBlock().getLocation())) return;
+        if (data.currentRoom().isInside(e.getBlock().getLocation())) return;
         e.setCancelled(true);
     }
 
     @EventHandler // 防止移動
     public void onMove(PlayerMoveEvent e) {
-        if (Main.BDGAME.getStage() == 0) return;
-        if (Main.BDGAME.getStage() == Main.BDGAME.getMaxStage()) return;
+        if (Main.BDGAME.isPreparingStage()) return;
+        if (Main.BDGAME.isViewingStage()) return;
         if (e.getTo() == null) return;
         if (e.getTo().getY() > 135 || e.getTo().getY() < 100) {
             PlayerData data = PlayerDataManager.getPlayerData(e.getPlayer());
             if (!data.isPlaying()) return;
-            e.setTo(data.currentRoom().loc);
+            e.setTo(data.currentRoom().getSpawnLocation());
         }
     }
 
@@ -142,8 +131,8 @@ public class BlockRulesListener implements Listener {
 
     @EventHandler // 防止掉落物消失
     public void onItemDrop(PlayerDropItemEvent e) {
-        if (Main.BDGAME.getStage() == 0) return;
-        if (Main.BDGAME.getStage() % 2 != 0) return;
+        if (Main.BDGAME.isPreparingStage()) return;
+        if (!Main.BDGAME.isBuildingStage()) return;
         PlayerData data = PlayerDataManager.getPlayerData(e.getPlayer());
         Room current = data.currentRoom();
         if (!current.isInside(e.getItemDrop().getLocation())) {

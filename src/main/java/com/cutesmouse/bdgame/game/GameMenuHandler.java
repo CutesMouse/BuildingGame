@@ -1,5 +1,7 @@
-package com.cutesmouse.bdgame;
+package com.cutesmouse.bdgame.game;
 
+import com.cutesmouse.bdgame.Main;
+import com.cutesmouse.bdgame.tools.SpecialItemBox;
 import com.cutesmouse.bdgame.utils.ItemBank;
 import com.cutesmouse.mgui.GUI;
 import com.cutesmouse.mgui.GUIItem;
@@ -20,7 +22,7 @@ public class GameMenuHandler {
         for (int i = 0; i < 45; i++)
             gui.addItem(i, new GUIItem(Material.GRAY_STAINED_GLASS_PANE, null, "§r", GUI.blank()));
         int stage = Main.BDGAME.getStage();
-        if (stage == 0) { //遊戲開始前
+        if (Main.BDGAME.isPreparingStage()) { //遊戲開始前
             gui.addItem(22, new GUIItem(Material.BARRIER, null, "§c遊戲準備中", GUI.blank()));
         } else if (stage == 1) { //出題環節
             if (data.currentRoom().data.origin == null) {
@@ -29,7 +31,7 @@ public class GameMenuHandler {
             } else
                 gui.addItem(22, new GUIItem(Material.EMERALD_BLOCK, Collections.singletonList("§b▶ " + data.currentRoom().data.origin),
                         "§f出題完成", GUI.blank()));
-        } else if (stage % 2 == 0) { //建築環節
+        } else if (Main.BDGAME.isBuildingStage()) { //建築環節
             if (data.isDone()) {
                 gui.addItem(44, new GUIItem(Material.EMERALD_BLOCK, Arrays.asList("§b▶ 目前已標示為完成", "§e☉ 點擊可重新標示為未完成"), "§c重新標示為未完成", (e, i) -> {
                     e.setCancelled(true);
@@ -44,26 +46,30 @@ public class GameMenuHandler {
                     e.getWhoClicked().closeInventory();
                 }));
             }
-            gui.addItem(19, new GUIItem(ItemBank.SELECT, (e, i) -> {
+            gui.addItem(11, new GUIItem(ItemBank.SELECT, (e, i) -> {
             }));
-            gui.addItem(20, new GUIItem(ItemBank.SET, (e, i) -> {
+            gui.addItem(12, new GUIItem(ItemBank.SET, (e, i) -> {
+            }));
+            gui.addItem(13, new GUIItem(Material.CHEST, new ArrayList<>(Arrays.asList("§b▶ 取得一些創造模式物品欄沒有的東西")),
+                    "§f工具箱", (e, i) -> SpecialItemBox.open(((Player) e.getWhoClicked()))));
+            gui.addItem(14, new GUIItem(ItemBank.COPY, (e, i) -> {
+            }));
+            gui.addItem(15, new GUIItem(ItemBank.PASTE, (e, i) -> {
+            }));
+            gui.addItem(20, new GUIItem(ItemBank.RESET, (e, i) -> {
             }));
             gui.addItem(21, new GUIItem(ItemBank.SETPLOT, (e, i) -> {
             }));
-            gui.addItem(22, new GUIItem(ItemBank.UNDO, (e, i) -> {
+            gui.addItem(23, new GUIItem(ItemBank.PARTICLE, (e, i) -> {
             }));
-            gui.addItem(23, new GUIItem(ItemBank.RESET, (e, i) -> {
+            gui.addItem(24, new GUIItem(ItemBank.UNDO, (e, i) -> {
             }));
-            gui.addItem(24, new GUIItem(ItemBank.COPY, (e, i) -> {
-            }));
-            gui.addItem(25, new GUIItem(ItemBank.PASTE, (e, i) -> {
-            }));
-            gui.addItem(43, new GUIItem(Material.BARRIER, new ArrayList<>(Arrays.asList("§b▶ 丟出的物品會變成不可撿取的狀態", "§e☉ 點擊可清除所有掉落物")),
-                    "§c清除所有掉落物品", (e, i) -> {
+            gui.addItem(43, new GUIItem(Material.BARRIER, new ArrayList<>(Arrays.asList("§b▶ 實體包含動物、掉落物與粒子效果", "§e☉ 點擊可清除所有實體")),
+                    "§c清除所有實體", (e, i) -> {
                 e.setCancelled(true);
                 Room room = PlayerDataManager.getPlayerData(e.getWhoClicked().getName()).currentRoom();
                 e.getWhoClicked().getWorld().getEntities().stream()
-                        .filter(item -> item.getType().equals(EntityType.ITEM) && room.isInside(item.getLocation()))
+                        .filter(item -> !item.getType().equals(EntityType.PLAYER) && room.isInside(item.getLocation()))
                         .forEach(Entity::remove);
                 e.getWhoClicked().closeInventory();
             }));
@@ -88,9 +94,7 @@ public class GameMenuHandler {
         gui.addItem(29, new GUIItem(Material.EMERALD_BLOCK, null, "§a⇨ 是", (e, i) -> {
             e.setCancelled(true);
             e.getWhoClicked().closeInventory();
-            data.currentRoom().data.origin = output;
-            data.currentRoom().data.originProvider = p.getName();
-            data.done();
+            data.submitTitle(output);
             e.getWhoClicked().sendMessage("§a題目設定完成");
         }));
         gui.addItem(33, new GUIItem(Material.REDSTONE_BLOCK, null, "§c⇨ 否",
@@ -113,9 +117,7 @@ public class GameMenuHandler {
             System.out.println("輸入Guess -> " + data.currentRoom().toString() + " / " + output + " / " + e.getWhoClicked().getName());
             e.setCancelled(true);
             e.getWhoClicked().closeInventory();
-            data.currentRoom().data.guess = output;
-            data.currentRoom().data.guessProvider = p.getName();
-            data.done();
+            data.submitGuess(output);
             e.getWhoClicked().sendMessage("§a已輸入猜測結果");
         }));
         gui.addItem(33, new GUIItem(Material.REDSTONE_BLOCK, null, "§c⇨ 否", GUI.signText("", h -> checkGuess(h.getPlayer(), combine(h.getLines()), data))));

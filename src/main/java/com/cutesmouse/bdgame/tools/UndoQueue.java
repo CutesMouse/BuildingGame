@@ -1,4 +1,6 @@
-package com.cutesmouse.bdgame;
+package com.cutesmouse.bdgame.tools;
+
+import com.cutesmouse.bdgame.Main;
 
 import java.util.ArrayList;
 

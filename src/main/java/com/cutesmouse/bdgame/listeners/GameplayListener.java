@@ -1,6 +1,11 @@
 package com.cutesmouse.bdgame.listeners;
 
 import com.cutesmouse.bdgame.*;
+import com.cutesmouse.bdgame.game.GameMenuHandler;
+import com.cutesmouse.bdgame.game.ResultManager;
+import com.cutesmouse.bdgame.particle.ModifiableParticleSettingProfile;
+import com.cutesmouse.bdgame.particle.ParticleEntity;
+import com.cutesmouse.bdgame.particle.ParticleTools;
 import com.cutesmouse.bdgame.tools.*;
 import com.cutesmouse.bdgame.utils.ItemBank;
 import org.bukkit.Material;
@@ -29,7 +34,7 @@ public class GameplayListener implements Listener {
     @EventHandler
     public void onPlayerMovedInventory(InventoryClickEvent e) {
         ItemStack item = ItemBank.MENU;
-        if (Main.BDGAME.getStage() == Main.BDGAME.getMaxStage()) {
+        if (Main.BDGAME.isViewingStage()) {
             if (!e.getWhoClicked().isOp()) return;
             item = ItemBank.NEXT_ITEM;
         }
@@ -80,9 +85,16 @@ public class GameplayListener implements Listener {
             return;
         }
 
+        if (Main.BDGAME.isGuessingStage()) {
+            e.setCancelled(true);
+        }
+
+        if (Main.BDGAME.isViewingStage()) {
+            e.setCancelled(true);
+        }
+
         // 建築工具
-        if (Main.BDGAME.getStage() > 0 && Main.BDGAME.getStage() % 2 == 0 &&
-                Main.BDGAME.getStage() < Main.BDGAME.getMaxStage()) {
+        if (Main.BDGAME.isBuildingStage()) {
             e.setCancelled(true);
             if (e.getItem().isSimilar(ItemBank.SELECT)) BuildTools.invokeSelectionTool(e);
             else if (e.getItem().isSimilar(ItemBank.SET)) BuildTools.invokeSetTool(e);
@@ -94,6 +106,25 @@ public class GameplayListener implements Listener {
             else e.setCancelled(false);
         }
 
+        // 粒子效果工具
+        if (Main.BDGAME.isBuildingStage()) {
+            if (e.getItem().isSimilar(ItemBank.PARTICLE)) {
+                e.setCancelled(true);
+                switch (e.getAction()) {
+                    case RIGHT_CLICK_AIR:
+                        ParticleTools.spawnParticle(e.getPlayer(), e.getPlayer().getLocation());
+                        break;
+                    case RIGHT_CLICK_BLOCK:
+                        ParticleTools.spawnParticle(e.getPlayer(), e.getClickedBlock().getLocation().add(0.5, 1.5, 0.5));
+                        break;
+                    case LEFT_CLICK_BLOCK:
+                    case LEFT_CLICK_AIR:
+                        ParticleTools.open(e.getPlayer());
+                        break;
+                }
+            }
+        }
+
         // 遊戲選單
         if (e.getItem().isSimilar(ItemBank.MENU)) {
             GameMenuHandler.open(e.getPlayer());
@@ -103,7 +134,7 @@ public class GameplayListener implements Listener {
 
         // 下一頁
         if (e.getItem().isSimilar(ItemBank.NEXT_ITEM)) {
-            if (Main.BDGAME.getStage() != Main.BDGAME.getMaxStage()) {
+            if (!Main.BDGAME.isViewingStage()) {
                 e.getPlayer().sendMessage("§c遊戲尚未結束! 還無法使用!");
                 return;
             }
@@ -120,6 +151,7 @@ public class GameplayListener implements Listener {
 
         // 銳評
         if (e.getItem().isSimilar(ItemBank.RANK_LEVEL_0)) {
+            e.setCancelled(true);
             if (!Main.BDGAME.isRanking()) {
                 e.getPlayer().sendMessage("§c銳評系統尚未開啟!");
                 return;
@@ -128,6 +160,7 @@ public class GameplayListener implements Listener {
             Main.BDGAME.vote(e.getPlayer().getName(), 1);
         }
         if (e.getItem().isSimilar(ItemBank.RANK_LEVEL_1)) {
+            e.setCancelled(true);
             if (!Main.BDGAME.isRanking()) {
                 e.getPlayer().sendMessage("§c銳評系統尚未開啟!");
                 return;
@@ -136,6 +169,7 @@ public class GameplayListener implements Listener {
             Main.BDGAME.vote(e.getPlayer().getName(), 2);
         }
         if (e.getItem().isSimilar(ItemBank.RANK_LEVEL_2)) {
+            e.setCancelled(true);
             if (!Main.BDGAME.isRanking()) {
                 e.getPlayer().sendMessage("§c銳評系統尚未開啟!");
                 return;
@@ -144,6 +178,7 @@ public class GameplayListener implements Listener {
             Main.BDGAME.vote(e.getPlayer().getName(), 3);
         }
         if (e.getItem().isSimilar(ItemBank.RANK_LEVEL_3)) {
+            e.setCancelled(true);
             if (!Main.BDGAME.isRanking()) {
                 e.getPlayer().sendMessage("§c銳評系統尚未開啟!");
                 return;
@@ -152,6 +187,7 @@ public class GameplayListener implements Listener {
             Main.BDGAME.vote(e.getPlayer().getName(), 4);
         }
         if (e.getItem().isSimilar(ItemBank.RANK_LEVEL_4)) {
+            e.setCancelled(true);
             if (!Main.BDGAME.isRanking()) {
                 e.getPlayer().sendMessage("§c銳評系統尚未開啟!");
                 return;
@@ -164,9 +200,9 @@ public class GameplayListener implements Listener {
     @EventHandler
     public void onClickEntity(PlayerInteractAtEntityEvent e) {
         if (e.getRightClicked() instanceof Player) return;
-        if (Main.BDGAME.getStage() == 0) return;
+        if (Main.BDGAME.isPreparingStage()) return;
         e.setCancelled(true);
-        if (Main.BDGAME.getStage() % 2 != 0) return;
+        if (!Main.BDGAME.isBuildingStage()) return;
         if (e.getRightClicked() instanceof ItemFrame) {
             if (e.getPlayer().isSneaking())
                 EntityEditting.openItemFrame(e.getPlayer(), ((ItemFrame) e.getRightClicked()));
@@ -178,6 +214,9 @@ public class GameplayListener implements Listener {
         Material hand_item = e.getPlayer().getInventory().getItemInMainHand().getType();
         if (hand_item.equals(Material.LEAD) || hand_item.equals(Material.NAME_TAG))
             e.setCancelled(false);
+        else if (ParticleEntity.modifyParticle(((ArmorStand) e.getRightClicked())) instanceof ParticleEntity particle) {
+            ParticleTools.open(e.getPlayer(), new ModifiableParticleSettingProfile(particle));
+        }
         else EntityEditting.open(e.getPlayer(), ((LivingEntity) e.getRightClicked()));
     }
 
@@ -200,8 +239,8 @@ public class GameplayListener implements Listener {
     public void onSwapItem(PlayerItemHeldEvent e) {
         EntityEditting.mouseScroll(e);
         if (e.isCancelled()) return;
-        if (Main.BDGAME.getStage() == 0) return;
-        if (Main.BDGAME.getStage() % 2 != 0) return;
+        if (Main.BDGAME.isPreparingStage()) return;
+        if (!Main.BDGAME.isBuildingStage()) return;
         BuildTools.showHoverOutline(e.getPlayer(), plugin, e.getNewSlot());
     }
 }

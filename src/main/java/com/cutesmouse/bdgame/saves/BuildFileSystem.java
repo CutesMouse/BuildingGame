@@ -1,7 +1,7 @@
 package com.cutesmouse.bdgame.saves;
 
 import com.cutesmouse.bdgame.Main;
-import com.cutesmouse.bdgame.Room;
+import com.cutesmouse.bdgame.game.Room;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,7 +49,7 @@ public class BuildFileSystem {
     }
 
     public enum FileType {
-        SCHEMATIC("schem"), ENTITY("entity");
+        SCHEMATIC("schem"), INFO("bdinfo");
         public String ident;
 
         FileType(String s) {

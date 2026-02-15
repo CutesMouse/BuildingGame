@@ -1,4 +1,4 @@
-package com.cutesmouse.bdgame;
+package com.cutesmouse.bdgame.game;
 
 import com.cutesmouse.bdgame.tools.EntityEditting;
 import com.cutesmouse.bdgame.scoreboards.ObjectiveData;
@@ -22,6 +22,7 @@ public class BuildingGame {
     private HashMap<String, Integer> votes;
     private double vote_result;
     private String vote_target;
+    private GameScheduler scheduler;
 
     /*
     @stage
@@ -84,6 +85,22 @@ public class BuildingGame {
         return stage;
     }
 
+    public boolean isPreparingStage() {
+        return stage == 0;
+    }
+
+    public boolean isBuildingStage() {
+        return stage > 0 && stage % 2 == 0 && stage < max_stage;
+    }
+
+    public boolean isGuessingStage() {
+        return stage > 0 && stage % 2 == 1 && stage < max_stage;
+    }
+
+    public boolean isViewingStage() {
+        return stage == max_stage;
+    }
+
     public void nextStage() {
         current_time = System.currentTimeMillis();
         PlayerDataManager.getPlayers().forEach(p -> p.getSelectedArea().clear());
@@ -91,7 +108,36 @@ public class BuildingGame {
             EntityEditting.resetMovingTask(p);
         }
         stage++;
-        if (stage == getMaxStage()) {
+        if (stage == 1) { // 出題環節
+            for (PlayerData p : PlayerDataManager.getPlayers()) {
+                Room room = p.currentRoom();
+                p.getPlayer().teleport(room.getSpawnLocation());
+                p.getPlayer().sendMessage("§6現在是出題時間! 請開啟選單來命題!");
+                p.getPlayer().sendTitle("§f出題時間", "§b第1階段", 20, 60, 20);
+            }
+        } else if (isBuildingStage()) { // 建築環節
+            for (PlayerData p : PlayerDataManager.getPlayers()) {
+                Room room = p.currentRoom();
+
+                if (stage != 2) { // 存在上一家建築
+                    Room guess = p.getThemeRoom(stage);
+                    room.data.origin = guess.data.guess;
+                    room.data.originProvider = guess.data.guessProvider;
+                }
+
+                p.getPlayer().teleport(room.getSpawnLocation());
+                p.getPlayer().sendMessage("§6您分配到的題目是 §e" + room.data.origin);
+                p.getPlayer().sendTitle("§f建築時間", "§b第" + stage + "階段", 20, 60, 20);
+                room.data.builder = p.getPlayer().getName();
+            }
+        } else if (isGuessingStage()) {
+            for (PlayerData p : PlayerDataManager.getPlayers()) {
+                Room room = p.getRoomForStage(stage);
+                p.getPlayer().teleport(room.getSpawnLocation());
+                p.getPlayer().sendMessage("§6請依照建築內容進行猜測");
+                p.getPlayer().sendTitle("§f猜測時間", "§b第" + stage + "階段", 20, 60, 20);
+            }
+        } else if (isViewingStage()) { // 欣賞環節
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.sendMessage("§a所有回合已經輪番結束! 現在開始欣賞結果!");
                 if (p.isOp()) p.getInventory().setItem(8, ItemBank.NEXT_ITEM);
@@ -101,51 +147,13 @@ public class BuildingGame {
                 p.getInventory().setItem(3, ItemBank.RANK_LEVEL_3);
                 p.getInventory().setItem(4, ItemBank.RANK_LEVEL_4);
             }
-            return;
-        }
-        if (stage == 1) {
-            for (PlayerData p : PlayerDataManager.getPlayers()) {
-                Room room = p.nextRoom(stage);
-                p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
-                p.getPlayer().sendMessage("§6現在是出題時間! 請開啟選單來命題!");
-                p.getPlayer().sendTitle("§f出題時間", "§b第1階段", 20, 60, 20);
-            }
-            return;
-        }
-        if (stage == 2) {
-            for (PlayerData p : PlayerDataManager.getPlayers()) {
-                Room room = p.nextRoom(stage);
-                p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
-                p.getPlayer().sendMessage("§6您分配到的題目是 §e" + room.data.origin);
-                p.getPlayer().sendTitle("§f建築時間", "§b第2階段", 20, 60, 20);
-                room.data.builder = p.getPlayer().getName();
-            }
-            return;
-        }
-        if (stage % 2 == 1) {
-            for (PlayerData p : PlayerDataManager.getPlayers()) {
-                Room room = p.nextRoom(stage);
-                p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
-                p.getPlayer().sendMessage("§6請依照建築內容進行猜測");
-                p.getPlayer().sendTitle("§f猜測時間", "§b第" + stage + "階段", 20, 60, 20);
-            }
-            return;
-        }
-        for (PlayerData p : PlayerDataManager.getPlayers()) {
-            Room room = p.nextRoom(stage);
-            Room guess = p.getGuessRoom();
-            room.data.origin = guess.data.guess;
-            room.data.originProvider = guess.data.guessProvider;
-            p.getPlayer().teleport(room.loc.clone().add(0.5, 0, 0.5));
-            p.getPlayer().sendMessage("§6您分配到的題目是 §e" + room.data.origin);
-            p.getPlayer().sendTitle("§f建築時間", "§b第" + stage + "階段", 20, 60, 20);
-            room.data.builder = p.getPlayer().getName();
         }
     }
 
     public void start() {
         this.total_time = System.currentTimeMillis();
         ArrayList<Player> ps = new ArrayList<>(Bukkit.getOnlinePlayers());
+        this.scheduler = new RandomGameScheduler(ps.size(), max_stage);
         Collections.shuffle(ps);
         int id = 0;
         for (Player p : ps) {
@@ -162,6 +170,10 @@ public class BuildingGame {
 
     public MapManager getMapManager() {
         return manager;
+    }
+
+    public GameScheduler getScheduler() {
+        return scheduler;
     }
 
     private String getStageText() {
@@ -208,7 +220,7 @@ public class BuildingGame {
         data.set(6, s -> "§k");
         data.set(5, s -> String.format("§f▶ 進行 §b%s", getTimeText(total_time)));
         data.set(4, s -> String.format("§r%s", (stage < max_stage ? "§f▶ 回合 §b" + stage + "/" + (max_stage - 1) : "")));
-        data.set(3, s -> "§f" + (getStage() == getMaxStage() ? (isRanking() ? "▶ 銳評 " + getVoteTarget() : "▶ 銳評系統關閉中") : (getTheme(s) == null ? "▶ 使用選單設定題目/猜測" : "▶ 主題 §e" + getTheme(s))));
+        data.set(3, s -> "§f" + (isViewingStage() ? (isRanking() ? "▶ 銳評 " + getVoteTarget() : "▶ 銳評系統關閉中") : (getTheme(s) == null ? "▶ 使用選單設定題目/猜測" : "▶ 主題 §e" + getTheme(s))));
         data.set(2, s -> "§9");
         data.set(1, s -> "§7" + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         ScoreboardManager.INSTANCE.setObjective_Data(data);

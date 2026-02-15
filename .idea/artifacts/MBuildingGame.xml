@@ -3,8 +3,8 @@
     <output-path>$PROJECT_DIR$/out/artifacts/MBuildingGame</output-path>
     <root id="archive" name="MBuildingGame.jar">
       <element id="module-output" name="BuildingGame" />
-      <element id="file-copy" path="$PROJECT_DIR$/plugin.yml" />
       <element id="extracted-dir" path="$PROJECT_DIR$/dependencies/rtag-1.5.14.jar" path-in-jar="/" />
+      <element id="file-copy" path="$PROJECT_DIR$/plugin.yml" />
     </root>
   </artifact>
 </component>

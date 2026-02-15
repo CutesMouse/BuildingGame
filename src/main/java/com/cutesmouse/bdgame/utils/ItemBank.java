@@ -1,6 +1,7 @@
 package com.cutesmouse.bdgame.utils;
 
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -113,5 +114,13 @@ public class ItemBank {
         meta.setDisplayName("§f黏貼工具");
         meta.setLore(new ArrayList<>(Arrays.asList("§b▶ 複製黏貼版的內容","§b▶ 以玩家位置為黏貼參考點", "§c☉ 須配合 §f複製工具")));
         PASTE.setItemMeta(meta);
+    }
+    public static final ItemStack PARTICLE;
+    static {
+        PARTICLE = new ItemStack(Material.FIREWORK_ROCKET);
+        ItemMeta meta = PARTICLE.getItemMeta();
+        meta.setDisplayName("§f粒子效果工具");
+        meta.setLore(new ArrayList<>(Arrays.asList("§b▶ 在建築中放置喜歡的粒子效果", "§b▶ 左鍵進入設定介面", "§b▶ 右鍵放置粒子效果")));
+        PARTICLE.setItemMeta(meta);
     }
 }

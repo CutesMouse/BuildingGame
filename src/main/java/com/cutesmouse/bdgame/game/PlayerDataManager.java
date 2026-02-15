@@ -1,4 +1,4 @@
-package com.cutesmouse.bdgame;
+package com.cutesmouse.bdgame.game;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -11,6 +11,7 @@ public class PlayerDataManager {
     private static final HashMap<String,PlayerData> PLD = new HashMap<>();
     public static PlayerData getPlayerData(Player player) {
         PlayerData data = null;
+        if (player == null) return null;
         if (PLD.containsKey(player.getName())) {
             data = PLD.get(player.getName());
         } else {
@@ -20,14 +21,7 @@ public class PlayerDataManager {
         return data;
     }
     public static PlayerData getPlayerData(String name) {
-        PlayerData data = null;
-        if (PLD.containsKey(name)) {
-            data = PLD.get(name);
-        } else {
-            data = new PlayerData(Bukkit.getPlayer(name));
-            PLD.put(name,data);
-        }
-        return data;
+        return getPlayerData(Bukkit.getPlayer(name));
     }
     public static Set<PlayerData> getPlayers() {
         return new HashSet<>(PLD.values());

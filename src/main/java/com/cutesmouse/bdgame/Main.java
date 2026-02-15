@@ -1,13 +1,18 @@
 package com.cutesmouse.bdgame;
 
+import com.cutesmouse.bdgame.commands.ClickEventCommand;
 import com.cutesmouse.bdgame.commands.Debug;
 import com.cutesmouse.bdgame.commands.BuildingGameCommand;
 import com.cutesmouse.bdgame.commands.RecoverBuildingsCommand;
+import com.cutesmouse.bdgame.game.BuildingGame;
+import com.cutesmouse.bdgame.game.MapManager;
 import com.cutesmouse.bdgame.listeners.BlockRulesListener;
 import com.cutesmouse.bdgame.listeners.GameplayListener;
+import com.cutesmouse.bdgame.particle.ParticleDisplayHandler;
 import com.cutesmouse.bdgame.scoreboards.ObjectiveData;
 import com.cutesmouse.bdgame.scoreboards.ScoreboardManager;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -16,6 +21,7 @@ import java.util.Date;
 
 public class Main extends JavaPlugin {
     public static BuildingGame BDGAME;
+
     @Override
     public void onEnable() {
         BDGAME = new BuildingGame();
@@ -23,23 +29,26 @@ public class Main extends JavaPlugin {
         getCommand("buildinggame").setExecutor(new BuildingGameCommand());
         getCommand("pastebuilding").setExecutor(new RecoverBuildingsCommand());
         getCommand("pastebuilding").setTabCompleter(new RecoverBuildingsCommand());
+        getCommand("request").setExecutor(new ClickEventCommand());
         getCommand("query").setExecutor(new Debug());
-        getServer().getPluginManager().registerEvents(new GameplayListener(this),this);
-        getServer().getPluginManager().registerEvents(new BlockRulesListener(),this);
+        getServer().getPluginManager().registerEvents(new GameplayListener(this), this);
+        getServer().getPluginManager().registerEvents(new BlockRulesListener(), this);
+        ParticleDisplayHandler.enable();
         loadScoreboard();
     }
+
     private void loadScoreboard() {
-        getServer().getPluginManager().registerEvents(ScoreboardManager.INSTANCE,this);
+        getServer().getPluginManager().registerEvents(ScoreboardManager.INSTANCE, this);
         ObjectiveData data = new ObjectiveData();
         data.set(9, s -> "§a");
         data.set(8, s -> "§b");
-        data.set(7,s -> "§b▶ 2026 跨年建築大賽");
-        data.set(6,s -> "§f  ☉ Since §e2017");
+        data.set(7, s -> "§b▶ 2026 跨年建築大賽");
+        data.set(6, s -> "§f  ☉ Since §e2017");
         data.set(5, s -> "§c");
-        data.set(4, s -> "§f▶ 人數 §b"+ Bukkit.getOnlinePlayers().size());
+        data.set(4, s -> "§f▶ 人數 §b" + Bukkit.getOnlinePlayers().size());
         data.set(3, s -> "§f▶ 準備中...");
         data.set(2, s -> "§d");
-        data.set(1,s -> "§7"+new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
+        data.set(1, s -> "§7" + new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         ScoreboardManager.INSTANCE.setObjective_Data(data);
         ScoreboardManager.INSTANCE.setObjective_DisplayName("§e● 2026 跨年建築大賽");
         ScoreboardManager.INSTANCE.setObjective_Name("list");
@@ -48,6 +57,6 @@ public class Main extends JavaPlugin {
             public void run() {
                 ScoreboardManager.INSTANCE.updateSidebarData();
             }
-        }.runTaskTimer(this,0L,10L);
+        }.runTaskTimer(this, 0L, 10L);
     }
 }

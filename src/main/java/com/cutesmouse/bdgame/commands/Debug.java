@@ -1,12 +1,14 @@
 package com.cutesmouse.bdgame.commands;
 
 import com.cutesmouse.bdgame.Main;
-import com.cutesmouse.bdgame.PlayerData;
-import com.cutesmouse.bdgame.PlayerDataManager;
-import com.cutesmouse.bdgame.Room;
+import com.cutesmouse.bdgame.game.PlayerData;
+import com.cutesmouse.bdgame.game.PlayerDataManager;
+import com.cutesmouse.bdgame.game.Room;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class Debug implements CommandExecutor {
 
@@ -32,10 +34,10 @@ public class Debug implements CommandExecutor {
                 sender.sendMessage("§6isPlaying: §r"+data.isPlaying());
                 sender.sendMessage("§6CurrentRoom: §r"+data.currentRoom().row+"/"+data.currentRoom().line);
                 sender.sendMessage("§6isDone: §r"+data.isDone());
-                sender.sendMessage("§6GuessRoom: §r"+data.getGuessRoom());
+                sender.sendMessage("§6GuessRoom: §r"+data.currentRoom());
                 sender.sendMessage("§6ID: §r"+data.getId());
                 /*for (int i = 1 ; i < Main.BDGAME.getMaxStage(); i++) {
-                    Room room = data.nextRoom(i);
+                    Room room = data.getRoomForStage(i);
                     sender.spigot().sendMessage();
                     TextComponent tex = new TextComponent("§6階段"+i+(i == 1 ? "(出題)" : (i % 2 == 0 ? "(建築)" : "(猜測)"))+"房間: §r"+ room + (i % 2 == 0 && i > 2 ?
                             "(題目: "+data.getGuessRoom(i)+")" : ""));
@@ -46,6 +48,21 @@ public class Debug implements CommandExecutor {
                 break;
             case "color":
                 System.out.println(sender.getServer().getScoreboardManager().getMainScoreboard().getObjective("test").getDisplayName());
+                break;
+            case "quicktest":
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (Main.BDGAME.isGuessingStage()) {
+                        PlayerData pd = PlayerDataManager.getPlayerData(p);
+
+                        if (pd.isDone()) continue;
+
+                        if (Main.BDGAME.getStage() == 1) {
+                            pd.submitTitle(p.getName() + Main.BDGAME.getStage() / 2);
+                        } else pd.submitGuess(p.getName() + Main.BDGAME.getStage() / 2);
+                    } else {
+                        PlayerDataManager.getPlayerData(p).done();
+                    }
+                }
                 break;
         }
         return true;
